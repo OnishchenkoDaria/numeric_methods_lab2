@@ -67,9 +67,12 @@ def initialise_D_n_S_mtrx(S, D, A):
 def square_sol():
   if(check_def_mtrx(A)):
     S = np.zeros((4, 4), dtype=float)
+    print_matrix(S)
     D = np.zeros((4, 4), dtype=float)
     initialise_D_n_S_mtrx(S, D, A)
-    S_t = transposed_matrix(S)
+    print_matrix(S)
+    S_t = np.zeros((4, 4), dtype=float)
+    transposed_matrix(S, S_t)
     R = multiply_matrix(S_t, D)
     y = solve_eq_mtrx(R, b)
     x = solve_eq_mtrx(S, y)
@@ -79,11 +82,7 @@ def square_sol():
   else:
     print("matrix is not symertrical")
     return
-
-def Zeidel_method_sol():
-  if(det_check(A)):
-    print()
-
+  
 def print_results(S, D, S_t, R, y, x, det):
   print_matrix(S, "S Matrix")
   print_matrix(D, "D Matrix")
@@ -93,10 +92,63 @@ def print_results(S, D, S_t, R, y, x, det):
   print_vector(x, "x vector")
   print(f"\ndet: {det:7.2f}\n")
 
+def get_user_input(accuracy_def):
+  #setting accuracy
+    accuracy_instruction = "Pass the accuracy to be reviewed in form of 1e-4 or press Enter to leave as default: "
+    accuracy_input = input(accuracy_instruction)
+    accuracy = float(accuracy_input) if accuracy_input else accuracy_def
+    return accuracy
+
+def Seidel_method_sol():
+  if(check_def_mtrx):
+    if(det_check(A)):
+      #base solution guess
+      x0 = [0, 0, 0, 0]
+      #set accuracy
+      accuracy = get_user_input(1e-4)
+
+      for k in range(100):
+        x_old = calculate_approximte_sol(x0)
+        check = accuracy_check(accuracy, x0, x_old, k)
+        if(check):
+          return
+      print("Iteratoins max reached")
+      return
+    else:
+      print("Determanant check failed")
+      return
+  else:
+    print("matrix is not symertrical")
+    return
+
+def calculate_approximte_sol(x0):
+  x_old = x0.copy() #save for iteration
+  
+  for i in range(4):
+    sum1 = sum(A[i][j] * x0[j] for j in range(i))  #new x_i sum
+    sum2 = sum(A[i][j] * x_old[j] for j in range(i + 1, 4))  #old x_i sum
+          
+    x0[i] = (b[i] - sum1 - sum2) / A[i][i]
+  return x0
+        
+def accuracy_check(accuracy, x0, x_old, k):
+  max_diff = 0
+  for i in range(4):
+    diff = abs(x0[i] - x_old[i])
+    if diff > max_diff:
+      max_diff = diff
+        
+  if max_diff < accuracy:
+    print(f"Solution foumd on {k+1}-th iteration")
+    print_vector(x0, "x vector")
+    return True
+  return False
+
 def find_inverse_mtrx(R, S_t):
   Y = solve_inverse_mtrx(E, R)
   X = solve_inverse_mtrx(Y, S_t)
-  A_inv = transposed_matrix(X)
+  A_inv = np.zeros((4, 4), dtype=float)
+  transposed_matrix(X, A_inv)
   print_matrix(A_inv, "A^(-1) Matrix")
 
 def solve_inverse_mtrx(E, R):
@@ -119,14 +171,11 @@ def solve_eq_mtrx(R, b):
         y[i] = (b[i] - sum) / R[i][i]
     return y
 
-def transposed_matrix(S):
+def transposed_matrix(S, S_t):
   for i in range(4):
     for j in range(4):
-        if i > j or i < i:
-          temp = S[i][j]
-          S[i][j] = S[j][i]
-          S[j][i] = temp
-  return S
+      S_t[i][j] = S[j][i]
+  return
 
 def multiply_matrix(S, D):
   R = np.zeros((4, 4), dtype=float)
@@ -158,3 +207,4 @@ def print_vector(y, label="Vector y"):
 
 if __name__ == "__main__":
   square_sol()
+  Seidel_method_sol()
