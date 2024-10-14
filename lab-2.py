@@ -67,15 +67,13 @@ def initialise_D_n_S_mtrx(S, D, A):
 def square_sol():
   if(check_def_mtrx(A)):
     S = np.zeros((4, 4), dtype=float)
-    print_matrix(S)
     D = np.zeros((4, 4), dtype=float)
     initialise_D_n_S_mtrx(S, D, A)
-    print_matrix(S)
     S_t = np.zeros((4, 4), dtype=float)
     transposed_matrix(S, S_t)
     R = multiply_matrix(S_t, D)
     y = solve_eq_mtrx(R, b)
-    x = solve_eq_mtrx(S, y)
+    x = solve_eq_mtrx_inverse(S, y)
     det = sqr_r_deteminant(D, S)
     print_results(S, D, S_t, R, y, x, det)
     find_inverse_mtrx(R, S_t)
@@ -108,7 +106,7 @@ def Seidel_method_sol():
       accuracy = get_user_input(1e-4)
 
       for k in range(100):
-        x_old = calculate_approximte_sol(x0)
+        x0, x_old = calculate_approximte_sol(x0)
         check = accuracy_check(accuracy, x0, x_old, k)
         if(check):
           return
@@ -123,23 +121,24 @@ def Seidel_method_sol():
 
 def calculate_approximte_sol(x0):
   x_old = x0.copy() #save for iteration
-  
   for i in range(4):
-    sum1 = sum(A[i][j] * x0[j] for j in range(i))  #new x_i sum
+    sum1 = sum(A[i][j] * x0[j] for j in range(0, i))  #new x_i sum
     sum2 = sum(A[i][j] * x_old[j] for j in range(i + 1, 4))  #old x_i sum
           
     x0[i] = (b[i] - sum1 - sum2) / A[i][i]
-  return x0
+  return x0, x_old
         
 def accuracy_check(accuracy, x0, x_old, k):
   max_diff = 0
+  #print(f"x0: {x0}, x_old: {x_old}")
   for i in range(4):
     diff = abs(x0[i] - x_old[i])
     if diff > max_diff:
       max_diff = diff
         
+  print(f"max_diff: {max_diff:.16f}")
   if max_diff < accuracy:
-    print(f"Solution foumd on {k+1}-th iteration")
+    print(f"\nSolution foumd on {k+1}-th iteration\n")
     print_vector(x0, "x vector")
     return True
   return False
@@ -167,6 +166,15 @@ def solve_eq_mtrx(R, b):
     for i in range(n):
         sum = 0
         for j in range(i):
+            sum += R[i][j] * y[j]
+        y[i] = (b[i] - sum) / R[i][i]
+    return y
+
+def solve_eq_mtrx_inverse(R, b):
+    y = np.zeros(4)
+    for i in range(3, -1, -1):
+        sum = 0
+        for j in range(i+1, 4): 
             sum += R[i][j] * y[j]
         y[i] = (b[i] - sum) / R[i][i]
     return y
