@@ -18,6 +18,16 @@ def check_def_mtrx(A):
         return False
   return True
 
+def minor_check(A):
+  for i in range(4):
+    sum = 0
+    for j in range(4):
+      if(j!=i):
+        sum += abs(A[i][j])
+    if abs(A [i][i]) < sum:
+      return False
+  return True
+
 def det_check(A):
   n = len(A)
   for i in range(n):
@@ -65,6 +75,7 @@ def initialise_D_n_S_mtrx(S, D, A):
 
 #method call
 def square_sol():
+  print("\n***** METHOD OF SQUARE ROOTS *****\n")
   if(check_def_mtrx(A)):
     S = np.zeros((4, 4), dtype=float)
     D = np.zeros((4, 4), dtype=float)
@@ -98,9 +109,15 @@ def get_user_input(accuracy_def):
     return accuracy
 
 def Seidel_method_sol():
+  print("\n***** SEIDEL METHOD *****\n")
   if(check_def_mtrx):
+    #checking det (i) to be >0
     if(det_check(A)):
       #base solution guess
+
+      if(minor_check(A)):
+        print("\nMatrix A is concurrent\n")
+        
       x0 = [0, 0, 0, 0]
       #set accuracy
       accuracy = get_user_input(1e-4)
